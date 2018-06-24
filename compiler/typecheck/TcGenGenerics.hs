@@ -45,7 +45,6 @@ import VarSet (elemVarSet)
 import Outputable
 import FastString
 import Util
-import MkId
 
 import Control.Monad (guard, mplus)
 import Data.List (zip4, partition)
@@ -458,7 +457,7 @@ data ArgTyAlg a = ArgTyAlg
   { ata_rec0 :: (Type -> a)
   , ata_par1 :: a, ata_rec1 :: (Type -> a)
   , ata_parAp0 :: (Type -> a)
-  , ata_parAp1 :: (a -> a)
+  , ata_parAp1 :: (Type -> a)
   , ata_comp :: (Type -> a -> a)
   }
 
@@ -515,7 +514,7 @@ argTyFold argVar (ArgTyAlg {ata_rec0 = mkRec0,
       
       let interesting = argVar `elemVarSet` exactTyCoVarsOfType beta
       
-      if interesting then mkParAp1 `fmap` go beta
+      if interesting then Just $ mkParAp1 beta
         else Just $ mkParAp0 beta
 
     isApp = do -- handles applications
@@ -619,15 +618,26 @@ tc_mkRepTy gk_ tycon k =
             -- altogether, and use Rec0 all the time.
                       Gen0_        -> mkRec0 t
                       Gen1_ argVar -> argPar argVar t
-          where
-            -- Builds argument representation for Rep1 (more complicated due to
-            -- the presence of composition).
-            argPar argVar = argTyFold argVar $ ArgTyAlg
-              {ata_rec0 = mkRec0, ata_par1 = mkPar1,
-               ata_rec1 = mkRec1,
-               ata_parAp0 = mkParAp0 parAp0 k,
-               ata_parAp1 = mkParAp1 parAp1 k,
-               ata_comp = mkComp comp k}
+                      
+        -- Builds argument representation for Rep1 (more complicated due to
+        -- the presence of composition).
+        argPar :: TyVar -> Type -> Type
+        argPar argVar = argTyFold argVar $ ArgTyAlg
+          {ata_rec0 = mkRec0, ata_par1 = mkPar1,
+           ata_rec1 = mkRec1,
+           ata_parAp0 = mkParAp0 parAp0 k,
+           ata_parAp1 = mkParAp1 parAp1 k . parApArg argVar,
+           ata_comp = mkComp comp k}
+               
+        -- Build the argument to a parAp1
+        parApArg :: TyVar -> Type -> Type
+        parApArg argVar = argTyFold argVar $ ArgTyAlg
+          {ata_rec0 = panic "parApArg ata_rec0",
+           ata_par1 = panic "parApArg ata_par1",
+           ata_rec1 = id,
+           ata_parAp0 = panic "parApArg ata_parAp0",
+           ata_parAp1 = panic "parApArg ata_parAp1",
+           ata_comp = mkComp comp k}
 
         tyConName_user = case tyConFamInst_maybe tycon of
                            Just (ptycon, _) -> tyConName ptycon
@@ -795,10 +805,8 @@ mk1Sum gk_ us i n datacon = (from_alt, to_alt)
               {ata_rec0 = nlHsVar . unboxRepRDR,
                ata_par1 = nlHsVar unPar1_RDR,
                ata_rec1 = const $ nlHsVar unRec1_RDR,
-               ata_parAp0 = const $ nlHsVar (getRdrName coerceId)
-                                    `nlHsCompose` nlHsVar unParAp0_RDR,
-               ata_parAp1 = const $ nlHsVar (getRdrName coerceId)
-                                    `nlHsCompose` nlHsVar unParAp1_RDR,
+               ata_parAp0 = const $ nlHsVar unParAp0_RDR,
+               ata_parAp1 = const $ nlHsVar unParAp1_RDR,
                ata_comp = \_ cnv -> (nlHsVar fmap_RDR `nlHsApp` cnv)
                                     `nlHsCompose` nlHsVar unComp1_RDR}
 
@@ -851,10 +859,8 @@ wrapArg_E (Gen1_DC argVar) (var, ty) = mkM1_E $
           {ata_rec0 = nlHsVar . boxRepRDR,
            ata_par1 = nlHsVar par1DataCon_RDR,
            ata_rec1 = const $ nlHsVar rec1DataCon_RDR,
-           ata_parAp0 = const $ nlHsVar parAp0DataCon_RDR `nlHsCompose`
-                                nlHsVar (getRdrName coerceId),
-           ata_parAp1 = const $ nlHsVar parAp1DataCon_RDR `nlHsCompose`
-                                nlHsVar (getRdrName coerceId),
+           ata_parAp0 = const $ nlHsVar parAp0DataCon_RDR,
+           ata_parAp1 = const $ nlHsVar parAp1DataCon_RDR,
            ata_comp = \_ cnv -> nlHsVar comp1DataCon_RDR `nlHsCompose`
                                   (nlHsVar fmap_RDR `nlHsApp` cnv)}
 
