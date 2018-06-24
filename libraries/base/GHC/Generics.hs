@@ -619,10 +619,12 @@ module GHC.Generics  (
 -- |
 --
 -- Types of kind @k -> *@ can include applications of the parameter, which are
--- represented by @ParAp1@
+-- represented by @ParAp0@ if they don't use the parameter recursively and by
+-- @ParAp1@ if they do.
 --
 -- @
--- newtype 'ParAp1' f p = 'ParAp1' { 'unParAp1' :: p (f p) } -- applications of the parameter
+-- newtype 'ParAp0' c p = 'ParAp0' { 'unParAp1' :: p c }     -- applications of the parameter
+-- newtype 'ParAp1' f p = 'ParAp1' { 'unParAp1' :: p (f p) } -- recursive applications of the parameter
 -- @
 --
 -- The 'Generic1' class can be generalized to range over types of kind
@@ -714,6 +716,7 @@ module GHC.Generics  (
   -- * Generic representation types
     V1, U1(..), Par1(..), Rec1(..), K1(..), M1(..)
   , (:+:)(..), (:*:)(..), (:.:)(..)
+  , ParAp0(..), ParAp1(..)
 
   -- ** Unboxed representation types
   , URec(..)
@@ -1030,7 +1033,7 @@ newtype ParAp0 (c :: k1) (p :: k1 -> Type) =
            -- , Generic1 
            )
 
--- | Applications of the parameter
+-- | Recursive applications of the parameter
 newtype ParAp1 (f :: (k1 -> Type) -> k1) (p :: k1 -> Type) =
     ParAp1 { unParAp1 :: p (f p) }
   deriving (Generic  

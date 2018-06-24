@@ -45,6 +45,7 @@ import VarSet (elemVarSet)
 import Outputable
 import FastString
 import Util
+import MkId
 
 import Control.Monad (guard, mplus)
 import Data.List (zip4, partition)
@@ -457,7 +458,7 @@ data ArgTyAlg a = ArgTyAlg
   { ata_rec0 :: (Type -> a)
   , ata_par1 :: a, ata_rec1 :: (Type -> a)
   , ata_parAp0 :: (Type -> a)
-  , ata_parAp1 :: (Type -> a)
+  , ata_parAp1 :: (a -> a)
   , ata_comp :: (Type -> a -> a)
   }
 
@@ -514,7 +515,8 @@ argTyFold argVar (ArgTyAlg {ata_rec0 = mkRec0,
       
       let interesting = argVar `elemVarSet` exactTyCoVarsOfType beta
       
-      Just $ if interesting then mkParAp1 beta else mkParAp0 beta
+      if interesting then mkParAp1 `fmap` go beta
+        else Just $ mkParAp0 beta
 
     isApp = do -- handles applications
       (phi, beta) <- tcSplitAppTy_maybe t
@@ -793,6 +795,10 @@ mk1Sum gk_ us i n datacon = (from_alt, to_alt)
               {ata_rec0 = nlHsVar . unboxRepRDR,
                ata_par1 = nlHsVar unPar1_RDR,
                ata_rec1 = const $ nlHsVar unRec1_RDR,
+               ata_parAp0 = const $ nlHsVar (getRdrName coerceId)
+                                    `nlHsCompose` nlHsVar unParAp0_RDR,
+               ata_parAp1 = const $ nlHsVar (getRdrName coerceId)
+                                    `nlHsCompose` nlHsVar unParAp1_RDR,
                ata_comp = \_ cnv -> (nlHsVar fmap_RDR `nlHsApp` cnv)
                                     `nlHsCompose` nlHsVar unComp1_RDR}
 
@@ -845,6 +851,10 @@ wrapArg_E (Gen1_DC argVar) (var, ty) = mkM1_E $
           {ata_rec0 = nlHsVar . boxRepRDR,
            ata_par1 = nlHsVar par1DataCon_RDR,
            ata_rec1 = const $ nlHsVar rec1DataCon_RDR,
+           ata_parAp0 = const $ nlHsVar parAp0DataCon_RDR `nlHsCompose`
+                                nlHsVar (getRdrName coerceId),
+           ata_parAp1 = const $ nlHsVar parAp1DataCon_RDR `nlHsCompose`
+                                nlHsVar (getRdrName coerceId),
            ata_comp = \_ cnv -> nlHsVar comp1DataCon_RDR `nlHsCompose`
                                   (nlHsVar fmap_RDR `nlHsApp` cnv)}
 
