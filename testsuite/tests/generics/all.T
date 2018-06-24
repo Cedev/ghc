@@ -1,6 +1,8 @@
 test('GenCanDoRep0',    normal, compile, [''])
 test('GenCanDoRep1',    normal, compile, [''])
-test('GenCanDoRep1Model', normal, compile, [''])
+test('GenCanDoRep1Model_0', normal, compile, [''])
+test('GenCanDoRep1Model_1', normal, compile, [''])
+test('GenCanDoRep1Model_2', normal, compile, [''])
 test('GenDerivOutput',  normal, compile, ['-dsuppress-uniques'])
 
 test('GenShouldFail0',  normal, compile_fail, [''])
