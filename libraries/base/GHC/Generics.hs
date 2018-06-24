@@ -1024,6 +1024,13 @@ deriving instance Semigroup (f (g p)) => Semigroup ((f :.: g) p)
 deriving instance Monoid (f (g p)) => Monoid ((f :.: g) p)
 
 -- | Applications of the parameter
+newtype ParAp0 (c :: k1) (p :: k1 -> Type) =
+    ParAp0 { unParAp0 :: p c }
+  deriving (Generic  
+           -- , Generic1 
+           )
+
+-- | Applications of the parameter
 newtype ParAp1 (f :: (k1 -> Type) -> k1) (p :: k1 -> Type) =
     ParAp1 { unParAp1 :: p (f p) }
   deriving (Generic  

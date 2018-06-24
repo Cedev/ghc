@@ -46,7 +46,7 @@ import Outputable
 import FastString
 import Util
 
-import Control.Monad (mplus)
+import Control.Monad (guard, mplus)
 import Data.List (zip4, partition)
 import Data.Maybe (isJust)
 
@@ -87,6 +87,7 @@ get_gen1_constrained_tys :: TyVar -> Type -> [Type]
 get_gen1_constrained_tys argVar
   = argTyFold argVar $ ArgTyAlg { ata_rec0 = const []
                                 , ata_par1 = [], ata_rec1 = const []
+                                , ata_parAp0 = const []
                                 , ata_parAp1 = const []
                                 , ata_comp = (:) }
 
@@ -281,7 +282,7 @@ canDoGenerics1 rep_tc =
       , ft_ty_app = \_ arg -> arg
       
       -- (var arg), where the higher-kinded parameter of interest is being applied
-      , ft_var_app = \arg -> caseVar
+      , ft_var_app = \arg -> bmplus caseVar arg
 
       , ft_bad_app = bmbad con wrong_arg
       , ft_forall  = \_ body -> body -- polytypes are handled elsewhere
@@ -455,6 +456,7 @@ tc_mkRepFamInsts gk tycon inst_tys =
 data ArgTyAlg a = ArgTyAlg
   { ata_rec0 :: (Type -> a)
   , ata_par1 :: a, ata_rec1 :: (Type -> a)
+  , ata_parAp0 :: (Type -> a)
   , ata_parAp1 :: (Type -> a)
   , ata_comp :: (Type -> a -> a)
   }
@@ -490,6 +492,7 @@ data ArgTyAlg a = ArgTyAlg
 argTyFold :: forall a. TyVar -> ArgTyAlg a -> Type -> a
 argTyFold argVar (ArgTyAlg {ata_rec0 = mkRec0,
                             ata_par1 = mkPar1, ata_rec1 = mkRec1,
+                            ata_parAp0 = mkParAp0,
                             ata_parAp1 = mkParAp1,
                             ata_comp = mkComp}) =
   -- mkRec0 is the default; use it if there is no interesting structure
@@ -507,8 +510,11 @@ argTyFold argVar (ArgTyAlg {ata_rec0 = mkRec0,
     isParamApp = do -- handles applications of the parameter
       (phi, beta) <- tcSplitAppTy_maybe t
       t' <- getTyVar_maybe phi
-      if t' == argVar then Just $ mkParAp1 beta
-      else Nothing
+      guard (t' == argVar)
+      
+      let interesting = argVar `elemVarSet` exactTyCoVarsOfType beta
+      
+      Just $ if interesting then mkParAp1 beta else mkParAp0 beta
 
     isApp = do -- handles applications
       (phi, beta) <- tcSplitAppTy_maybe t
@@ -539,6 +545,7 @@ tc_mkRepTy gk_ tycon k =
     rec0    <- tcLookupTyCon rec0TyConName
     rec1    <- tcLookupTyCon rec1TyConName
     par1    <- tcLookupTyCon par1TyConName
+    parAp0  <- tcLookupTyCon parAp0TyConName
     parAp1  <- tcLookupTyCon parAp1TyConName
     u1      <- tcLookupTyCon u1TyConName
     v1      <- tcLookupTyCon v1TyConName
@@ -616,6 +623,7 @@ tc_mkRepTy gk_ tycon k =
             argPar argVar = argTyFold argVar $ ArgTyAlg
               {ata_rec0 = mkRec0, ata_par1 = mkPar1,
                ata_rec1 = mkRec1,
+               ata_parAp0 = mkParAp0 parAp0 k,
                ata_parAp1 = mkParAp1 parAp1 k,
                ata_comp = mkComp comp k}
 
@@ -689,6 +697,12 @@ mkComp comp k f g
     k1_first = k_first == p_kind_var
     [k_first,_,_,_,p] = tyConTyVars comp
     Just p_kind_var = getTyVar_maybe (tyVarKind p)
+
+mkParAp0 :: TyCon -> Kind -> Type -> Type
+mkParAp0 parAp0 k c = mkTyConApp parAp0 [k1,c]
+  where
+    -- The parameter must have kind (k1 -> *) ~ k
+    (k1,_) = splitFunTy k
 
 mkParAp1 :: TyCon -> Kind -> Type -> Type
 mkParAp1 parAp1 k f = mkTyConApp parAp1 [k1,f]

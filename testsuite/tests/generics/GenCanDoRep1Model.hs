@@ -26,4 +26,6 @@ data ListF a f = NilF | ConsF (f a) (f (ListF a f))         deriving Generic1
 
 data RoseF a f = RoseF a [f (RoseF a f)]                    deriving Generic1
 
+data ParAp0 c p = ParAp0 (p c)                              deriving Generic1
+
 data ParAp1 f p = ParAp1 (p (f p))                          deriving Generic1

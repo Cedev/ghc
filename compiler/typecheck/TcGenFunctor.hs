@@ -1114,7 +1114,8 @@ a is the last type variable in a given datatype):
               Examples: Either a Int, Const a b
 
 * ft_var_app: A kigher-kinded type is being applied.
-              Example: data WrapIntWith a = Wrapped (a Int)
+              Examples: data WrapIntWith a = Wrapped (a Int)
+                        data Fix a = In (a (Fix a))
 
 * ft_forall:  A forall'd type mentions the last type parameter on its right-
               hand side (and is not quantified on the left-hand side). This

@@ -442,8 +442,8 @@ basicKnownKeyNames
 
 genericTyConNames :: [Name]
 genericTyConNames = [
-    v1TyConName, u1TyConName, par1TyConName, parAp1TyConName, rec1TyConName,
-    k1TyConName, m1TyConName, sumTyConName, prodTyConName,
+    v1TyConName, u1TyConName, par1TyConName, parAp0TyConName, parAp1TyConName,
+    rec1TyConName, k1TyConName, m1TyConName, sumTyConName, prodTyConName,
     compTyConName, rTyConName, dTyConName,
     cTyConName, sTyConName, rec0TyConName,
     d1TyConName, c1TyConName, s1TyConName, noSelTyConName,
@@ -778,8 +778,8 @@ error_RDR :: RdrName
 error_RDR = varQual_RDR gHC_ERR (fsLit "error")
 
 -- Generics (constructors and functions)
-u1DataCon_RDR, par1DataCon_RDR, parAp1DataCon_RDR, rec1DataCon_RDR,
-  k1DataCon_RDR, m1DataCon_RDR, l1DataCon_RDR, r1DataCon_RDR,
+u1DataCon_RDR, par1DataCon_RDR, parAp0DataCon_RDR, parAp1DataCon_RDR, 
+  rec1DataCon_RDR, k1DataCon_RDR, m1DataCon_RDR, l1DataCon_RDR, r1DataCon_RDR,
   prodDataCon_RDR, comp1DataCon_RDR,
   unPar1_RDR, unParAp1_RDR, unRec1_RDR, unK1_RDR, unComp1_RDR,
   from_RDR, from1_RDR, to_RDR, to1_RDR,
@@ -794,6 +794,7 @@ u1DataCon_RDR, par1DataCon_RDR, parAp1DataCon_RDR, rec1DataCon_RDR,
 
 u1DataCon_RDR     = dataQual_RDR gHC_GENERICS (fsLit "U1")
 par1DataCon_RDR   = dataQual_RDR gHC_GENERICS (fsLit "Par1")
+parAp0DataCon_RDR = dataQual_RDR gHC_GENERICS (fsLit "ParAp0")
 parAp1DataCon_RDR = dataQual_RDR gHC_GENERICS (fsLit "ParAp1")
 rec1DataCon_RDR   = dataQual_RDR gHC_GENERICS (fsLit "Rec1")
 k1DataCon_RDR     = dataQual_RDR gHC_GENERICS (fsLit "K1")
@@ -806,6 +807,7 @@ prodDataCon_RDR   = dataQual_RDR gHC_GENERICS (fsLit ":*:")
 comp1DataCon_RDR  = dataQual_RDR gHC_GENERICS (fsLit "Comp1")
 
 unPar1_RDR   = varQual_RDR gHC_GENERICS (fsLit "unPar1")
+unParAp0_RDR = varQual_RDR gHC_GENERICS (fsLit "unParAp0")
 unParAp1_RDR = varQual_RDR gHC_GENERICS (fsLit "unParAp1")
 unRec1_RDR   = varQual_RDR gHC_GENERICS (fsLit "unRec1")
 unK1_RDR     = varQual_RDR gHC_GENERICS (fsLit "unK1")
@@ -906,8 +908,8 @@ leftDataConName   = dcQual dATA_EITHER (fsLit "Left")   leftDataConKey
 rightDataConName  = dcQual dATA_EITHER (fsLit "Right")  rightDataConKey
 
 -- Generics (types)
-v1TyConName, u1TyConName, par1TyConName, parAp1TyConName, rec1TyConName,
-  k1TyConName, m1TyConName, sumTyConName, prodTyConName,
+v1TyConName, u1TyConName, par1TyConName, parAp0TyConName, parAp1TyConName, 
+  rec1TyConName, k1TyConName, m1TyConName, sumTyConName, prodTyConName,
   compTyConName, rTyConName, dTyConName,
   cTyConName, sTyConName, rec0TyConName,
   d1TyConName, c1TyConName, s1TyConName, noSelTyConName,
@@ -925,6 +927,7 @@ v1TyConName, u1TyConName, par1TyConName, parAp1TyConName, rec1TyConName,
 v1TyConName     = tcQual gHC_GENERICS (fsLit "V1") v1TyConKey
 u1TyConName     = tcQual gHC_GENERICS (fsLit "U1") u1TyConKey
 par1TyConName   = tcQual gHC_GENERICS (fsLit "Par1") par1TyConKey
+parAp0TyConName = tcQual gHC_GENERICS (fsLit "ParAp0") parAp0TyConKey
 parAp1TyConName = tcQual gHC_GENERICS (fsLit "ParAp1") parAp1TyConKey
 rec1TyConName   = tcQual gHC_GENERICS (fsLit "Rec1") rec1TyConKey
 k1TyConName     = tcQual gHC_GENERICS (fsLit "K1") k1TyConKey
@@ -1791,7 +1794,7 @@ unknown3TyConKey                        = mkPreludeTyConUnique 132
 opaqueTyConKey                          = mkPreludeTyConUnique 133
 
 -- Generics (Unique keys)
-v1TyConKey, u1TyConKey, par1TyConKey, parAp1TyConKey,
+v1TyConKey, u1TyConKey, par1TyConKey, parAp0TyConKey, parAp1TyConKey,
   rec1TyConKey, k1TyConKey, m1TyConKey,
   sumTyConKey, prodTyConKey,
   compTyConKey, rTyConKey, dTyConKey,
@@ -1804,16 +1807,17 @@ v1TyConKey, u1TyConKey, par1TyConKey, parAp1TyConKey,
 v1TyConKey     = mkPreludeTyConUnique 134
 u1TyConKey     = mkPreludeTyConUnique 135
 par1TyConKey   = mkPreludeTyConUnique 136
-parAp1TyConKey = mkPreludeTyConUnique 137
-rec1TyConKey   = mkPreludeTyConUnique 138
-k1TyConKey     = mkPreludeTyConUnique 139
-m1TyConKey     = mkPreludeTyConUnique 140
+parAp0TyConKey = mkPreludeTyConUnique 137
+parAp1TyConKey = mkPreludeTyConUnique 138
+rec1TyConKey   = mkPreludeTyConUnique 139
+k1TyConKey     = mkPreludeTyConUnique 140
+m1TyConKey     = mkPreludeTyConUnique 141
 
-sumTyConKey   = mkPreludeTyConUnique 141
-prodTyConKey  = mkPreludeTyConUnique 142
-compTyConKey  = mkPreludeTyConUnique 143
+sumTyConKey   = mkPreludeTyConUnique 142
+prodTyConKey  = mkPreludeTyConUnique 143
+compTyConKey  = mkPreludeTyConUnique 144
 
-rTyConKey = mkPreludeTyConUnique 144
+rTyConKey = mkPreludeTyConUnique 145
 dTyConKey = mkPreludeTyConUnique 146
 cTyConKey = mkPreludeTyConUnique 147
 sTyConKey = mkPreludeTyConUnique 148
