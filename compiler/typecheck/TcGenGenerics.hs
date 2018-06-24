@@ -87,7 +87,7 @@ get_gen1_constrained_tys :: TyVar -> Type -> [Type]
 get_gen1_constrained_tys argVar
   = argTyFold argVar $ ArgTyAlg { ata_rec0 = const []
                                 , ata_par1 = [], ata_rec1 = const []
-                                , ata_parAp1 = id
+                                , ata_parAp1 = const []
                                 , ata_comp = (:) }
 
 {-
@@ -281,7 +281,7 @@ canDoGenerics1 rep_tc =
       , ft_ty_app = \_ arg -> arg
       
       -- (var arg), where the higher-kinded parameter of interest is being applied
-      , ft_var_app = \arg -> bmplus caseVar arg
+      , ft_var_app = \arg -> caseVar
 
       , ft_bad_app = bmbad con wrong_arg
       , ft_forall  = \_ body -> body -- polytypes are handled elsewhere
@@ -455,7 +455,7 @@ tc_mkRepFamInsts gk tycon inst_tys =
 data ArgTyAlg a = ArgTyAlg
   { ata_rec0 :: (Type -> a)
   , ata_par1 :: a, ata_rec1 :: (Type -> a)
-  , ata_parAp1 :: (a -> a)
+  , ata_parAp1 :: (Type -> a)
   , ata_comp :: (Type -> a -> a)
   }
 
@@ -507,7 +507,7 @@ argTyFold argVar (ArgTyAlg {ata_rec0 = mkRec0,
     isParamApp = do -- handles applications of the parameter
       (phi, beta) <- tcSplitAppTy_maybe t
       t' <- getTyVar_maybe phi
-      if t' == argVar then mkParAp1 `fmap` go beta
+      if t' == argVar then Just $ mkParAp1 beta
       else Nothing
 
     isApp = do -- handles applications
