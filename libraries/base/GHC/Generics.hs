@@ -623,7 +623,7 @@ module GHC.Generics  (
 -- @ParAp1@ if they do.
 --
 -- @
--- newtype 'ParAp0' c p = 'ParAp0' { 'unParAp1' :: p c }     -- applications of the parameter
+-- newtype 'ParAp0' c p = 'ParAp0' { 'unParAp0' :: p c }     -- applications of the parameter
 -- newtype 'ParAp1' f p = 'ParAp1' { 'unParAp1' :: p (f p) } -- recursive applications of the parameter
 -- @
 --
