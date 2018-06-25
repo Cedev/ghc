@@ -20,8 +20,8 @@ data Child f = Child {
     nickname :: f String
 }
   deriving (Generic1)
-
-data Fix f = In f (Fix f)                                   deriving Generic1
+  
+data Fix f = In (f (Fix f))                                 deriving Generic1
 
 data ListF a f = NilF | ConsF (f a) (f (ListF a f))         deriving Generic1
 
