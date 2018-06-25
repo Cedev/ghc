@@ -2,7 +2,6 @@ test('GenCanDoRep0',    normal, compile, [''])
 test('GenCanDoRep1',    normal, compile, [''])
 test('GenCanDoRep1Model_0', normal, compile, [''])
 test('GenCanDoRep1Model_1', normal, compile, [''])
-test('GenCanDoRep1Model_2', normal, compile, [''])
 test('GenDerivOutput',  normal, compile, ['-dsuppress-uniques'])
 
 test('GenShouldFail0',  normal, compile_fail, [''])
@@ -19,6 +18,9 @@ test('GenCannotDoRep1_4', normal, compile_fail, [''])
 test('GenCannotDoRep1_6', normal, compile_fail, [''])
 test('GenCannotDoRep1_7', normal, compile_fail, [''])
 test('GenCannotDoRep1_8', normal, compile_fail, [''])
+
+test('GenCannotDoRep1Model_0', normal, compile_fail, [''])
+test('GenCannotDoRep1Model_1', normal, compile_fail, [''])
 
 test('GFullyStrict', normal, compile_and_run, [''])
 

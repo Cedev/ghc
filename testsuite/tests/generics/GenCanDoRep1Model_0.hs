@@ -2,7 +2,7 @@
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE PolyKinds #-}
 
-module CanDoRep1Model where
+module CanDoRep1Model_0 where
 
 import GHC.Generics (Generic, Generic1)
 

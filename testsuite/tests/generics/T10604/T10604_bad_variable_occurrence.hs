@@ -4,5 +4,5 @@ module T10604_bad_variable_occurrence where
 
 import GHC.Generics
 
-newtype Fix f = In { out :: f (Fix f) }
+newtype Twice f = Twice ((f Int) Int)
   deriving Generic1

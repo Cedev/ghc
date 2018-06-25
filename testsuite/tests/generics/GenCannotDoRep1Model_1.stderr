@@ -1,0 +1,6 @@
+
+GenCannotDoRep1Model_1.hs:12:65: error:
+    • Can't make a derived instance of ‘Generic1 Strange’:
+        Constructor ‘Strange’ applies the parameter but the application
+                              isn't of the the form (p (f p)) or (p c)
+    • In the data declaration for ‘Strange’
